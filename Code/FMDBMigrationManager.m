@@ -64,6 +64,7 @@ static NSArray *FMDBClassesConformingToProtocol(Protocol *protocol)
 @property (nonatomic, assign) BOOL shouldCloseOnDealloc;
 @property (nonatomic) NSArray *migrations;
 @property (nonatomic) NSMutableArray *externalMigrations;
+@property (nonatomic, retain) NSString * password;
 @end
 
 @implementation FMDBMigrationManager
@@ -72,6 +73,12 @@ static NSArray *FMDBClassesConformingToProtocol(Protocol *protocol)
 {
     FMDatabase *database = [FMDatabase databaseWithPath:path];
     return [[self alloc] initWithDatabase:database migrationsBundle:bundle];
+}
+
++ (instancetype)managerWithEncryptedDatabaseAtPath:(NSString *)path andPassword: (NSString *) password  migrationsBundle:(NSBundle *)bundle
+{
+    FMDatabase *database = [FMDatabase databaseWithPath:path];
+    return [[self alloc] initWithEncryptedDatabase:database andPassword: password migrationsBundle:bundle];
 }
 
 + (instancetype)managerWithDatabase:(FMDatabase *)database migrationsBundle:(NSBundle *)bundle
@@ -93,6 +100,26 @@ static NSArray *FMDBClassesConformingToProtocol(Protocol *protocol)
         if (![database goodConnection]) {
             self.shouldCloseOnDealloc = YES;
             [database open];
+        }
+    }
+    return self;
+}
+
+- (id)initWithEncryptedDatabase:(FMDatabase *)database andPassword: (NSString *) password migrationsBundle:(NSBundle *)migrationsBundle
+{
+    if (!database) [NSException raise:NSInvalidArgumentException format:@"Cannot initialize a `%@` with nil `database`.", [self class]];
+    if (!migrationsBundle) [NSException raise:NSInvalidArgumentException format:@"Cannot initialize a `%@` with nil `migrationsBundle`.", [self class]];
+    self = [super init];
+    if (self) {
+        _database = database;
+        _migrationsBundle = migrationsBundle;
+        _dynamicMigrationsEnabled = YES;
+        _externalMigrations = [NSMutableArray new];
+        _password = password;
+        if (![database goodConnection]) {
+            self.shouldCloseOnDealloc = YES;
+            [database open];
+            [database setKey:_password];
         }
     }
     return self;

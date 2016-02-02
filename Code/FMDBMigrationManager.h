@@ -50,6 +50,15 @@
 + (instancetype)managerWithDatabaseAtPath:(NSString *)path migrationsBundle:(NSBundle *)bundle;
 
 /**
+ @abstract Creates a new migration manager with a database for the given encrypted database, its password and migrations bundle.
+ @param path The path to an encrypted database with which to initialize the migration manager.
+ @param password The password of the encrypted database.
+ @param bundle The bundle containing the migrations.
+ @return A new migration manager.
+ */
++ (instancetype)managerWithEncryptedDatabaseAtPath:(NSString *)path andPassword: (NSString *) password  migrationsBundle:(NSBundle *)bundle;
+
+/**
  @abstract Determines whether the receiver will perform a search for dynamically defined migrations. Default: `YES`.
  @discussion When `YES` all classes will be enumerated to search for any that conform to the `FMDBMigrating` protocol.
  */
